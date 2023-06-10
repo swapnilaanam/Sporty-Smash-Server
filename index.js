@@ -72,8 +72,17 @@ async function run() {
         });
 
         // checks if the user is admin or not
-        app.get('/users/admin/:email', async (req, res) => {
+        app.get('/users/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
+
+            if (req.decoded.email !== email) {
+                return res.send({ admin: false });
+            }
+
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            const result = { admin: user?.role === 'admin' };
+            res.send(result);
         })
 
         // Send a ping to confirm a successful connection
