@@ -47,6 +47,7 @@ async function run() {
         await client.connect();
 
         const userCollection = client.db("sportyDB").collection("users");
+        const classCollection = client.db("sportyDB").collection("classes");
 
         // verify admin
         const verifyAdmin = async (req, res, next) => {
@@ -153,6 +154,16 @@ async function run() {
             const result = { instructor: user?.role === 'instructor' };
             res.send(result);
         });
+
+
+        // classes related apis
+        app.post('/classes', verifyJWT, verifyInstructor, async (req, res) => {
+            const newClass = req.body;
+
+            const result = await classCollection.insertOne(newClass);
+            res.send(result);
+        })
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
