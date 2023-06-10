@@ -62,6 +62,7 @@ async function run() {
             next();
         }
 
+
         // jwt issue api
         app.post('/jwt', (req, res) => {
             const user = req.body;
@@ -70,11 +71,13 @@ async function run() {
             res.send({ token });
         });
 
+
         // users related apis
         app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
             const result = await userCollection.find().toArray();
             res.send(result);
-        })
+        });
+
 
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -90,6 +93,7 @@ async function run() {
             res.send(result);
         });
 
+
         app.patch('/users/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const newRole = req.body.role;
             const id = req.params.id;
@@ -104,7 +108,8 @@ async function run() {
 
             const result = await userCollection.updateOne(filter, updateDoc);
             res.send(result);
-        })
+        });
+
 
         // checks if the user is admin or not
         app.get('/users/admin/:email', verifyJWT, async (req, res) => {
@@ -118,7 +123,21 @@ async function run() {
             const user = await userCollection.findOne(query);
             const result = { admin: user?.role === 'admin' };
             res.send(result);
-        })
+        });
+
+        // checks if the user is instructor or not
+        app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+
+            if (req.decoded.email !== email) {
+                return res.send({ instructor: false });
+            }
+
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            const result = { instructor: user?.role === 'instructor' };
+            res.send(result);
+        });
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
