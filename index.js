@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 
@@ -17,9 +17,9 @@ const verifyJWT = (req, res, next) => {
         return res.status(401).send({ error: true, message: 'Unauthorized access...' });
     }
 
-    const token = authorization.split(' ')[0];
+    const token = authorization.split(' ')[1];
 
-    jwt.verify(token, pro.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
         if (err) {
             return res.status(401).send({ error: true, message: 'Unauthorized access' });
         }
@@ -48,6 +48,20 @@ async function run() {
 
         const userCollection = client.db("sportyDB").collection("users");
 
+        // verify admin
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+
+            const user = await userCollection.findOne(query);
+
+            if (user?.role !== 'admin') {
+                return res.status(403).send({ error: true, message: 'forbidden message' });
+            }
+
+            next();
+        }
+
         // jwt issue api
         app.post('/jwt', (req, res) => {
             const user = req.body;
@@ -57,6 +71,11 @@ async function run() {
         });
 
         // users related apis
+        app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result);
+        })
+
         app.post('/users', async (req, res) => {
             const user = req.body;
             const query = { email: user.email };
@@ -70,6 +89,22 @@ async function run() {
             const result = await userCollection.insertOne(user);
             res.send(result);
         });
+
+        app.patch('/users/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const newRole = req.body.role;
+            const id = req.params.id;
+
+            const filter = { _id: new ObjectId(id) };
+
+            const updateDoc = {
+                $set: {
+                    role: newRole
+                }
+            }
+
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
 
         // checks if the user is admin or not
         app.get('/users/admin/:email', verifyJWT, async (req, res) => {
