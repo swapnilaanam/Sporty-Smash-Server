@@ -10,6 +10,25 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+const verifyJWT = (req, res, next) => {
+    const authorization = req.headers.authorization;
+
+    if (!authorization) {
+        return res.status(401).send({ error: true, message: 'Unauthorized access...' });
+    }
+
+    const token = authorization.split(' ')[0];
+
+    jwt.verify(token, pro.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ error: true, message: 'Unauthorized access' });
+        }
+
+        req.decoded = decoded;
+        next();
+    })
+}
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.fuichu5.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -35,7 +54,7 @@ async function run() {
 
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
             res.send({ token });
-        })
+        });
 
         // users related apis
         app.post('/users', async (req, res) => {
@@ -51,6 +70,11 @@ async function run() {
             const result = await userCollection.insertOne(user);
             res.send(result);
         });
+
+        // checks if the user is admin or not
+        app.get('/users/admin/:email', async (req, res) => {
+            const email = req.params.email;
+        })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
