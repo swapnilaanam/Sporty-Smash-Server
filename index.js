@@ -48,6 +48,7 @@ async function run() {
 
         const userCollection = client.db("sportyDB").collection("users");
         const classCollection = client.db("sportyDB").collection("classes");
+        const cartCollection = client.db("sportyDB").collection("carts");
 
         // verify admin
         const verifyAdmin = async (req, res, next) => {
@@ -79,6 +80,21 @@ async function run() {
         }
 
 
+        // verify student
+        const verifyStudent = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+
+            const user = await userCollection.findOne(query);
+
+            if (user?.role !== 'student') {
+                return res.status(403).send({ error: true, message: 'forbidden message' });
+            }
+
+            next();
+        }
+
+
         // jwt issue api
         app.post('/jwt', (req, res) => {
             const user = req.body;
@@ -93,6 +109,7 @@ async function run() {
             const result = await userCollection.find().toArray();
             res.send(result);
         });
+
 
         app.get('/users/instructors', async (req, res) => {
             const query = { role: 'instructor' };
@@ -148,6 +165,7 @@ async function run() {
             res.send(result);
         });
 
+
         // checks if the user is instructor or not
         app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
@@ -169,12 +187,14 @@ async function run() {
             res.send(result);
         });
 
+
         app.get('/classes/approved', async (req, res) => {
             const query = { status: 'approved' };
 
             const result = await classCollection.find(query).toArray();
             res.send(result);
-        })
+        });
+
 
         app.get('/classes/:email', verifyJWT, verifyInstructor, async (req, res) => {
             const email = req.params.email;
@@ -184,12 +204,14 @@ async function run() {
             res.send(result);
         });
 
+
         app.post('/classes', verifyJWT, verifyInstructor, async (req, res) => {
             const newClass = req.body;
 
             const result = await classCollection.insertOne(newClass);
             res.send(result);
         });
+
 
         app.patch('/classes/status/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
@@ -207,6 +229,7 @@ async function run() {
             res.send(result);
         });
 
+
         app.patch('/classes/feedback/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const newFeedback = req.body.feedback;
@@ -220,6 +243,15 @@ async function run() {
             }
 
             const result = await classCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
+
+        // cart related apis 
+        app.post('/carts', verifyJWT, verifyStudent, async (req, res) => {
+            const selectedClass = req.body;
+
+            const result = await cartCollection.insertOne(selectedClass);
             res.send(result);
         });
 
