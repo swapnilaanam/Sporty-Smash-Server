@@ -169,6 +169,13 @@ async function run() {
             res.send(result);
         });
 
+        app.get('/classes/approved', async (req, res) => {
+            const query = { status: 'approved' };
+
+            const result = await classCollection.find(query).toArray();
+            res.send(result);
+        })
+
         app.get('/classes/:email', verifyJWT, verifyInstructor, async (req, res) => {
             const email = req.params.email;
             const query = { instructorEmail: email };
