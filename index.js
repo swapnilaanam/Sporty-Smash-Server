@@ -247,7 +247,21 @@ async function run() {
         });
 
 
-        // cart related apis 
+        // cart related apis
+        app.get('/carts', verifyJWT, verifyStudent, async (req, res) => {
+            const email = req.query.email;
+
+            if (!email) {
+                return res.send([]);
+            }
+
+            const query = { studentEmail: email };
+
+            const result = await cartCollection.find(query).toArray();
+            res.send(result);
+        });
+
+
         app.post('/carts', verifyJWT, verifyStudent, async (req, res) => {
             const selectedClass = req.body.selectedClass;
             const classId = selectedClass.classId;
@@ -261,6 +275,16 @@ async function run() {
             }
 
             const result = await cartCollection.insertOne(selectedClass);
+            res.send(result);
+        });
+
+
+        app.delete('/carts/:id', verifyJWT, verifyStudent, async (req, res) => {
+            const id = req.params.id;
+
+            const query = { _id: new ObjectId(id) };
+
+            const result = await cartCollection.deleteOne(query);
             res.send(result);
         });
 
