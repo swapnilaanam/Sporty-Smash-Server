@@ -265,12 +265,13 @@ async function run() {
         app.post('/carts', verifyJWT, verifyStudent, async (req, res) => {
             const selectedClass = req.body.selectedClass;
             const classId = selectedClass.classId;
+            const studentEmail = selectedClass.studentEmail;
 
-            const query = { classId: classId };
+            const query = { classId: classId, studentEmail: studentEmail };
 
             const existingClass = await cartCollection.findOne(query);
 
-            if (existingClass && existingClass.studentEmail === selectedClass.studentEmail) {
+            if (existingClass) {
                 return res.send({ exist: true, message: 'class is already selected by the student...' });
             }
 
