@@ -157,7 +157,7 @@ async function run() {
 
 
         // classes related apis
-        app.get('/classes', verifyJWT, async (req, res) => {
+        app.get('/classes', verifyJWT, verifyAdmin, async (req, res) => {
             const result = await classCollection.find().toArray();
             res.send(result);
         });
