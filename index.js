@@ -4,6 +4,7 @@ const cors = require('cors');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY);
 const port = process.env.PORT || 5000;
 
 // middleware
@@ -49,6 +50,7 @@ async function run() {
         const userCollection = client.db("sportyDB").collection("users");
         const classCollection = client.db("sportyDB").collection("classes");
         const cartCollection = client.db("sportyDB").collection("carts");
+        const paymentCollection = client.db("sportyDB").collection("payments");
 
         // verify admin
         const verifyAdmin = async (req, res, next) => {
@@ -262,6 +264,16 @@ async function run() {
         });
 
 
+        app.get('/carts/:id', verifyJWT, verifyStudent, async (req, res) => {
+            const id = req.params.id;
+
+            const query = { _id: new ObjectId(id) };
+
+            const result = await cartCollection.findOne(query);
+            res.send(result);
+        })
+
+
         app.post('/carts', verifyJWT, verifyStudent, async (req, res) => {
             const selectedClass = req.body.selectedClass;
             const classId = selectedClass.classId;
@@ -288,6 +300,35 @@ async function run() {
             const result = await cartCollection.deleteOne(query);
             res.send(result);
         });
+
+
+        // create payment intent
+        app.post('/create-payment-intent', verifyJWT, verifyStudent, async (req, res) => {
+            const { price } = req.body;
+            const amount = price * 100;
+            console.log(price, amount);
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            })
+
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            });
+
+        });
+
+
+        // payment related apis
+        app.post('/payments', verifyJWT, verifyStudent, async (req, res) => {
+            console.log('Hello');
+            const payment = req.body;
+
+            const result = await paymentCollection.insertOne(payment);
+            res.send(result);
+        })
 
 
         // Send a ping to confirm a successful connection
