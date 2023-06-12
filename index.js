@@ -282,10 +282,16 @@ async function run() {
 
             const query = { classId: classId, studentEmail: studentEmail };
 
-            const existingClass = await cartCollection.findOne(query);
+            const existingSelectedClass = await cartCollection.findOne(query);
 
-            if (existingClass) {
-                return res.send({ exist: true, message: 'class is already selected by the student...' });
+            if (existingSelectedClass) {
+                return res.send({ exist: true, message: 'You have already selected this class!' });
+            }
+
+            const existingEnrolledClass = await enrolledClassCollection.findOne(query);
+
+            if (existingEnrolledClass) {
+                return res.send({ exist: true, message: 'You have already enrolled into this class!' })
             }
 
             const result = await cartCollection.insertOne(selectedClass);
