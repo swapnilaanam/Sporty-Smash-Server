@@ -51,6 +51,7 @@ async function run() {
         const classCollection = client.db("sportyDB").collection("classes");
         const cartCollection = client.db("sportyDB").collection("carts");
         const paymentCollection = client.db("sportyDB").collection("payments");
+        const enrolledClassCollection = client.db("sportyDB").collection("enrolledclasses");
 
         // verify admin
         const verifyAdmin = async (req, res, next) => {
@@ -306,7 +307,6 @@ async function run() {
         app.post('/create-payment-intent', verifyJWT, verifyStudent, async (req, res) => {
             const { price } = req.body;
             const amount = price * 100;
-            console.log(price, amount);
 
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: amount,
@@ -323,12 +323,20 @@ async function run() {
 
         // payment related apis
         app.post('/payments', verifyJWT, verifyStudent, async (req, res) => {
-            console.log('Hello');
             const payment = req.body;
 
             const result = await paymentCollection.insertOne(payment);
             res.send(result);
-        })
+        });
+
+
+        // enrolled classes related apis
+        app.post('/enrolledclasses', verifyJWT, verifyStudent, async (req, res) => {
+            const enrolledClass = req.body;
+
+            const result = await enrolledClassCollection.insertOne(enrolledClass);
+            res.send(result);
+        });
 
 
         // Send a ping to confirm a successful connection
