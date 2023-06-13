@@ -121,6 +121,13 @@ async function run() {
             res.send(result);
         });
 
+        app.get('/users/instructors/popular', async (req, res) => {
+            const query = { role: 'instructor' };
+
+            const result = await userCollection.find(query).limit(6).toArray();
+            res.send(result);
+        });
+
 
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -180,6 +187,21 @@ async function run() {
             const query = { email: email };
             const user = await userCollection.findOne(query);
             const result = { instructor: user?.role === 'instructor' };
+            res.send(result);
+        });
+
+
+        // checks if the user is student or not
+        app.get('/users/student/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+
+            if (req.decoded.email !== email) {
+                return res.send({ instructor: false });
+            }
+
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            const result = { instructor: user?.role === 'student' };
             res.send(result);
         });
 
