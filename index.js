@@ -198,6 +198,11 @@ async function run() {
             res.send(result);
         });
 
+        app.get('/classes/popular', async (req, res) => {
+            const result = await classCollection.find().sort({totalEnrolledStudents: -1}).limit(6).toArray();
+            res.send(result);
+        });
+
 
         app.get('/classes/:email', verifyJWT, verifyInstructor, async (req, res) => {
             const email = req.params.email;
