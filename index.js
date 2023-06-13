@@ -331,16 +331,16 @@ async function run() {
         app.get('/payments', verifyJWT, verifyStudent, async (req, res) => {
             const email = req.query.email;
 
-            if(!email) {
+            if (!email) {
                 return res.send([]);
             }
 
-            const query = {email: email}
+            const query = { email: email }
 
             const result = await paymentCollection.find(query).toArray();
             res.send(result);
         });
-        
+
 
         app.post('/payments', verifyJWT, verifyStudent, async (req, res) => {
             const payment = req.body;
@@ -351,6 +351,20 @@ async function run() {
 
 
         // enrolled classes related apis
+        app.get('/enrolledclasses', verifyJWT, verifyStudent, async (req, res) => {
+            const email = req.query.email;
+
+            if (!email) {
+                return res.send([]);
+            }
+
+            const query = { studentEmail: email };
+
+            const result = await enrolledClassCollection.find(query).toArray();
+            res.send(result);
+        });
+
+
         app.post('/enrolledclasses', verifyJWT, verifyStudent, async (req, res) => {
             const enrolledClass = req.body;
 
