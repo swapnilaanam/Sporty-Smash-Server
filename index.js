@@ -196,12 +196,12 @@ async function run() {
             const email = req.params.email;
 
             if (req.decoded.email !== email) {
-                return res.send({ instructor: false });
+                return res.send({ student: false });
             }
 
             const query = { email: email };
             const user = await userCollection.findOne(query);
-            const result = { instructor: user?.role === 'student' };
+            const result = { student: user?.role === 'student' };
             res.send(result);
         });
 
