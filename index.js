@@ -328,6 +328,20 @@ async function run() {
 
 
         // payment related apis
+        app.get('/payments', verifyJWT, verifyStudent, async (req, res) => {
+            const email = req.query.email;
+
+            if(!email) {
+                return res.send([]);
+            }
+
+            const query = {email: email}
+
+            const result = await paymentCollection.find(query).toArray();
+            res.send(result);
+        });
+        
+
         app.post('/payments', verifyJWT, verifyStudent, async (req, res) => {
             const payment = req.body;
 
