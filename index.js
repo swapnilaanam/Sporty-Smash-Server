@@ -250,6 +250,23 @@ async function run() {
         });
 
 
+        app.patch('/classes/enrolled/:id', verifyJWT, verifyStudent, async (req, res) => {
+            const id = req.params.id;
+
+            const filter = { _id: new ObjectId(id) };
+
+            const updateDoc = {
+                $inc: {
+                    availableSeats: -1,
+                    totalEnrolledStudents: 1
+                }
+            }
+
+            const result = await classCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
+
         // cart related apis
         app.get('/carts', verifyJWT, verifyStudent, async (req, res) => {
             const email = req.query.email;
