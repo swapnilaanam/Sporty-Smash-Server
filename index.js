@@ -120,6 +120,7 @@ async function run() {
             const result = await userCollection.find(query).toArray();
             res.send(result);
         });
+        
 
         app.get('/users/instructors/popular', async (req, res) => {
             const query = { role: 'instructor' };
